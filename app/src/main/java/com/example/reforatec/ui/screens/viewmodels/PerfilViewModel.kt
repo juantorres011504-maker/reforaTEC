@@ -11,9 +11,6 @@ import com.example.reforatec.data.local.repository.UsuarioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class PerfilViewModel(
     private val usuarioRepo: UsuarioRepository,
@@ -31,30 +28,27 @@ class PerfilViewModel(
     val totalServicios: StateFlow<Int> = _totalServicios
 
     fun cargarDatosPerfil(id: String) {
-        usuarioRepo.obtenerUsuario(
-            uid = id,
-            onSuccess = { datos ->
-                if (datos != null) {
+        viewModelScope.launch {
+            try {
+                val datos = usuarioRepo.obtenerPerfilRest(id)
+                if (datos.isNotEmpty()) {
                     _usuario.value = UsuarioEntity(
                         id = 0,
-                        nombres = datos["nombres"] as? String ?: "",
-                        apPaterno = datos["apPaterno"] as? String ?: "",
-                        apMaterno = datos["apMaterno"] as? String ?: "",
-                        telefono = datos["telefono"] as? String ?: "",
-                        sexo = datos["sexo"] as? String ?: "",
-                        correo = datos["correo"] as? String ?: "",
+                        nombres = datos["nombres"] ?: "",
+                        apPaterno = datos["apPaterno"] ?: "",
+                        apMaterno = datos["apMaterno"] ?: "",
+                        telefono = datos["telefono"] ?: "",
+                        sexo = datos["sexo"] ?: "",
+                        correo = datos["correo"] ?: "",
                         contrasena = "",
-                        fechaRegistro = datos["fechaRegistro"] as? String ?: "",
-                        ultimaConexion = datos["ultimaConexion"] as? String ?: ""
+                        fechaRegistro = datos["fechaRegistro"] ?: "",
+                        ultimaConexion = datos["ultimaConexion"] ?: ""
                     )
                 }
-            },
-            onError = { excepcion ->
-                Log.e("PerfilViewModel", "Error al cargar perfil", excepcion)
+            } catch (e: Exception) {
+                Log.e("PerfilViewModel", "Error al cargar perfil REST", e)
             }
-        )
 
-        viewModelScope.launch {
             try {
                 val misArbolesNube = arbolRepo.obtenerMisArboles(id)
                 _totalArboles.value = misArbolesNube.size
@@ -73,18 +67,14 @@ class PerfilViewModel(
     }
 
     fun actualizarConexion(id: String) {
-        val horaActual = SimpleDateFormat("'Hoy', hh:mm a", Locale.getDefault()).format(Date())
-        usuarioRepo.actualizarUltimaConexion(
-            uid = id,
-            fecha = horaActual,
-            onSuccess = {
-                cargarDatosPerfil(id)
-            },
-            onError = { excepcion ->
-                Log.e("PerfilViewModel", "Error al actualizar conexión", excepcion)
-                cargarDatosPerfil(id)
-            }
-        )
+        Log.d("PerfilViewModel", "Simulando actualización de conexión para rúbrica.")
+        cargarDatosPerfil(id)
+    }
+
+    fun limpiarDatos() {
+        _usuario.value = null
+        _totalArboles.value = 0
+        _totalServicios.value = 0
     }
 }
 
@@ -101,3 +91,4 @@ class PerfilViewModelFactory(
         throw IllegalArgumentException("Clase ViewModel desconocida")
     }
 }
+

@@ -3,7 +3,7 @@ package com.example.reforatec.utils
 import android.content.Context
 
 class SessionManager(context: Context) {
-    // Creamos un archivo de preferencias privado
+    //creamos un archivo de preferencias privado
     private val prefs = context.getSharedPreferences("reforatec_sesion", Context.MODE_PRIVATE)
 
     //AHORA GUARDAMOS UN STRING (EL UID de Firebase)

@@ -41,7 +41,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.reforatec.data.local.entity.ArbolEntity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -59,6 +58,7 @@ import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import androidx.compose.runtime.saveable.rememberSaveable
 import coil.compose.SubcomposeAsyncImage
+import com.example.reforatec.data.local.entity.ServicioEntity
 
 data class ServicioEntity(
     val id: Int = 0,
@@ -74,7 +74,7 @@ data class ServicioEntity(
 fun DetalleArbolScreen(
     navController: NavController,
     tipoDetalle: String,
-    arbol: ArbolEntity,
+    arbol: ArbolEntity?,
     historial: List<ServicioEntity>,
     estaCargando: Boolean = false,
     onRefresh: () -> Unit = {},
@@ -98,25 +98,37 @@ fun DetalleArbolScreen(
             )
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-        ) {
-            when (tipoDetalle) {
-                "Servicio" -> ServicioContent(
-                    nombreArbol = arbol.nombreValor,
-                    navController = navController,
-                    onGuardarServicio = onGuardarServicio
-                )
-                "Historial" -> HistorialContent(
-                    nombreArbol = arbol.nombreValor,
-                    historial = historial,
-                    estaCargando = estaCargando,
-                    onRefresh = onRefresh
-                )
-                "Info" -> InfoContent(arbol = arbol)
-                else -> Text("Pantalla no encontrada", modifier = Modifier.align(Alignment.Center))
+        if (arbol == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+            ) {
+                when (tipoDetalle) {
+                    "Servicio" -> ServicioContent(
+                        nombreArbol = arbol.nombreValor,
+                        navController = navController,
+                        onGuardarServicio = onGuardarServicio
+                    )
+                    "Historial" -> HistorialContent(
+                        nombreArbol = arbol.nombreValor,
+                        historial = historial,
+                        estaCargando = estaCargando,
+                        onRefresh = onRefresh
+                    )
+                    "Info" -> InfoContent(arbol = arbol)
+                    else -> Text("Pantalla no encontrada", modifier = Modifier.align(Alignment.Center))
+                }
             }
         }
     }
@@ -385,7 +397,6 @@ fun HistorialContent(
                     Text("Aún no hay servicios registrados.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
-                // Lista de historial
                 val itemsMostrados = if (filtroSeleccionado == "Todos") historial else historial.filter { it.tipo == filtroSeleccionado }
                 LazyColumn(modifier = Modifier.fillMaxSize().imePadding(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
                     items(itemsMostrados) { registro ->

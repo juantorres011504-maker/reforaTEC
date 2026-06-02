@@ -1,8 +1,12 @@
 package com.example.reforatec.ui.screens
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,10 +19,12 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,7 +32,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reforatec.data.local.entity.ArbolEntity
-import androidx.compose.runtime.saveable.rememberSaveable
+
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.ui.input.pointer.pointerInput
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,8 +106,8 @@ fun ListaArbolesScreen(
                         onClick = {
                             navController.navigate("perfil") {
                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true // Evita múltiples copias de la pantalla
-                                restoreState = true    // Restaura por donde ibas haciendo scroll
+                                launchSingleTop = true
+                                restoreState = true
                             }
                         },
                         icon = {
@@ -143,7 +154,7 @@ fun ListaArbolesScreen(
             onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             if (estaCargando && arboles.isEmpty()) {
                 Column(
@@ -203,7 +214,7 @@ fun ListaArbolesScreen(
             else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 120.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(arboles) { arbol ->
@@ -228,11 +239,38 @@ fun ArbolCardExpandible(
     onInfoClick: () -> Unit
 ) {
     var expandido by rememberSaveable { mutableStateOf(false) }
+    var isPressed by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "animacion_rebote"
+    )
 
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { expandido = !expandido }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    isPressed = true
+                    waitForUpOrCancellation()
+                    isPressed = false
+                }
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { expandido = !expandido }
+            )
             .animateContentSize(),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),

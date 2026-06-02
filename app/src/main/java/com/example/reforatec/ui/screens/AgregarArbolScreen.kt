@@ -189,7 +189,6 @@ fun AgregarArbolScreen(
                     errorColonia = e4
 
                     if (e1 == null && e2 == null && e3 == null && e4 == null) {
-                        // Activamos la carga e iniciamos el envío
                         estaGuardando = true
                         onGuardarClick(nombreValor, especie, escuelaCampana, calle, numeroExterior, colonia) {
                             estaGuardando = false

@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.reforatec.data.local.entity.ArbolEntity
-import com.example.reforatec.ui.screens.ServicioEntity
+import com.example.reforatec.data.local.entity.ServicioEntity
 import com.example.reforatec.data.local.repository.ArbolRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -85,4 +85,8 @@ dependencies {
 
     // Firebase Storage para las evidencias fotográficas
     implementation("com.google.firebase:firebase-storage")
+
+    // 👇 NUEVAS DEPENDENCIAS PARA RETROFIT Y GSON
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }

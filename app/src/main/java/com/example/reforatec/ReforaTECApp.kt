@@ -1,7 +1,6 @@
 package com.example.reforatec
 
 import android.widget.Toast
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 
 import com.example.reforatec.data.local.database.AppDatabase
 import com.example.reforatec.data.local.repository.UsuarioRepository
@@ -85,11 +86,24 @@ fun ReforaTECApp(temaActual: String, onTemaModificado: (String) -> Unit) {
         startDestination = rutaInicial,
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
         enterTransition = {
-            fadeIn(animationSpec = tween(600)) +
-                    scaleIn(initialScale = 0.95f, animationSpec = tween(400))
+            fadeIn(animationSpec = tween(300)) +
+                    scaleIn(
+                        initialScale = 0.92f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        )
+                    )
         },
         exitTransition = {
-            fadeOut(animationSpec = tween(500))
+            fadeOut(animationSpec = tween(300)) +
+                    scaleOut(
+                        targetScale = 1.05f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        )
+                    )
         },
         popEnterTransition = {
             fadeIn(animationSpec = tween(500))
@@ -122,7 +136,7 @@ fun ReforaTECApp(temaActual: String, onTemaModificado: (String) -> Unit) {
                         },
                         onError = { mensajeError ->
                             Toast.makeText(context, mensajeError, Toast.LENGTH_LONG).show()
-                            detenerCarga() // 👇 Apagamos el botón si la contraseña está mal
+                            detenerCarga()
                         }
                     )
                 },
@@ -164,7 +178,7 @@ fun ReforaTECApp(temaActual: String, onTemaModificado: (String) -> Unit) {
                         correo = correo,
                         onSuccess = {
                             Toast.makeText(context, "Enlace enviado. Revisa tu bandeja de entrada.", Toast.LENGTH_LONG).show()
-                            navController.popBackStack() // Regresa al Login si tuvo éxito
+                            navController.popBackStack()
                         },
                         onError = { mensajeError ->
                             Toast.makeText(context, mensajeError, Toast.LENGTH_LONG).show()
@@ -230,6 +244,7 @@ fun ReforaTECApp(temaActual: String, onTemaModificado: (String) -> Unit) {
                 onLogoutClick = {
                     sessionManager.clearSession()
                     com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                    perfilViewModel.limpiarDatos()
                     android.widget.Toast.makeText(context, "Sesión cerrada", android.widget.Toast.LENGTH_SHORT).show()
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
@@ -276,35 +291,33 @@ fun ReforaTECApp(temaActual: String, onTemaModificado: (String) -> Unit) {
             val historialServicios by detalleViewModel.historial.collectAsState()
             val estaCargando by detalleViewModel.estaCargando.collectAsState()
 
-            arbolEntity?.let { arbolReal ->
-                DetalleArbolScreen(
-                    navController = navController,
-                    tipoDetalle = tipo,
-                    arbol = arbolReal,
-                    historial = historialServicios,
-                    estaCargando = estaCargando,
-                    onRefresh = { detalleViewModel.cargarDetalles(arbolId) },
-                    onGuardarServicio = { tipoServicio, alturaAct, diametroAct, comentariosAct, fechaAct, fotoUriAct, onErrorCallback ->
-                        detalleViewModel.agregarServicio(
-                            arbolId = arbolId,
-                            tipo = tipoServicio,
-                            altura = alturaAct,
-                            diametro = diametroAct,
-                            comentarios = comentariosAct,
-                            fecha = fechaAct,
-                            fotoUriString = fotoUriAct,
-                            onSuccess = {
-                                Toast.makeText(context, "¡Servicio subido con éxito!", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
-                            },
-                            onError = { mensaje ->
-                                Toast.makeText(context, "Error: $mensaje", Toast.LENGTH_LONG).show()
-                                onErrorCallback()
-                            }
-                        )
-                    }
-                )
-            }
+            DetalleArbolScreen(
+                navController = navController,
+                tipoDetalle = tipo,
+                arbol = arbolEntity,
+                historial = historialServicios,
+                estaCargando = estaCargando,
+                onRefresh = { detalleViewModel.cargarDetalles(arbolId) },
+                onGuardarServicio = { tipoServicio, alturaAct, diametroAct, comentariosAct, fechaAct, fotoUriAct, onErrorCallback ->
+                    detalleViewModel.agregarServicio(
+                        arbolId = arbolId,
+                        tipo = tipoServicio,
+                        altura = alturaAct,
+                        diametro = diametroAct,
+                        comentarios = comentariosAct,
+                        fecha = fechaAct,
+                        fotoUriString = fotoUriAct,
+                        onSuccess = {
+                            Toast.makeText(context, "¡Servicio subido con éxito!", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        },
+                        onError = { mensaje ->
+                            Toast.makeText(context, "Error: $mensaje", Toast.LENGTH_LONG).show()
+                            onErrorCallback()
+                        }
+                    )
+                }
+            )
         }
 
 

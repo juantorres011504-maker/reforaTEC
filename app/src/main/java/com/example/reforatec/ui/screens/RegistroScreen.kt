@@ -42,7 +42,7 @@ fun RegistroScreen(
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    val opcionesSexo = listOf("Hombre", "Mujer", "Prefiero no decirlo")
+    val opcionesSexo = listOf("Hombre", "Mujer", "Otro")
     var sexoSeleccionado by remember { mutableStateOf("") }
     var expandirDropdown by remember { mutableStateOf(false) }
 
